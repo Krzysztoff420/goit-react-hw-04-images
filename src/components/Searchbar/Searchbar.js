@@ -1,41 +1,38 @@
-import { Component } from 'react';
 import css from './Searchbar.module.css';
 import PropTypes from 'prop-types';
 
-export class Searchbar extends Component {
-  onSubmit = evt => {
+export const Searchbar = ({ onInputChange, onFetchImages }) => {
+  const onSubmit = evt => {
     evt.preventDefault();
-    const { onFetchImages } = this.props;
 
     onFetchImages();
   };
 
-  handleInput = evt => {
+  const handleInput = evt => {
     const text = evt.target.value;
-    const { onInputChange } = this.props;
 
     onInputChange(text);
   };
 
-  render() {
-    return (
-      <header className={css.searchbar}>
-        <form className={css.searchForm} onSubmit={this.onSubmit}>
-          <button type="submit" className={css.searchFormButton}>
-            <span className={css.searchFormButtonLabel}>Search</span>
-          </button>
+  return (
+    <header className={css.searchbar}>
+      <form className={css.searchForm} onSubmit={onSubmit}>
+        <button type="submit" className={css.searchFormButton}>
+          <span className={css.searchFormButtonLabel}>Search</span>
+        </button>
 
-          <input
-            className={css.searchFormInput}
-            type="text"
-            placeholder="Search images and photos"
-            onChange={this.handleInput}
-          />
-        </form>
-      </header>
-    );
-  }
-}
+        <input
+          className={css.searchFormInput}
+          type="text"
+          // autocomplete="off"
+          // autofocus
+          placeholder="Search images and photos"
+          onChange={handleInput}
+        />
+      </form>
+    </header>
+  );
+};
 
 Searchbar.propTypes = {
   onInputChange: PropTypes.func.isRequired,

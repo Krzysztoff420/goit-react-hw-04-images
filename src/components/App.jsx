@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ColorRing } from 'react-loader-spinner';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -6,62 +6,47 @@ import { ImageGalleryItem } from './ImageGalleryItem/ImageGalleryItem';
 import { Button } from './Button/Button';
 import { fetchImages } from './Api/fetchImages.js';
 
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [totalHits, setTotalHits] = useState(null);
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('');
 
-export class App extends Component {
-  state = {
-    isLoading: false,
-    images: [],
-    totalHits: null,
-    q: '',
-    page: 1,
+  const totalPages = Math.ceil(totalHits / 12);
+
+  const handleChange = text => {
+    setQuery(text);
   };
 
-  handleChange = text => {
-    this.setState({
-      q: text,
-    });
+  const handleRequest = async () => {
+    setIsLoading(true);
+
+    const imagesFromApi = await fetchImages({ q: query });
+
+    setImages(imagesFromApi.hits);
+    setTotalHits(imagesFromApi.totalHits);
+    setIsLoading(false);
+    setPage(page + 1);
   };
 
-  handleRequest = async () => {
-    this.setState({
-      isLoading: true,
-      page: 1,
-    });
+  const handleLoadMore = async () => {
+    setIsLoading(true);
 
-    const { q } = this.state;
+    const imagesFromApi = await fetchImages({ q: query, page });
 
-    const imagesFromApi = await fetchImages({ q });
+    setImages(images.concat(imagesFromApi.hits));
+    setIsLoading(false);
 
-    this.setState(state => ({
-      images: imagesFromApi.hits,
-      totalHits: imagesFromApi.totalHits,
-      isLoading: false,
-      page: this.state.page + 1,
-    }));
+    setPage(page + 1);
   };
 
-  handleLoadMore = async () => {
-    this.setState({
-      isLoading: true,
-    });
-
-    const { q, page } = this.state;
-
-    const imagesFromApi = await fetchImages({ q, page });
-
-    this.setState(state => ({
-      images: state.images.concat(imagesFromApi.hits),
-      isLoading: false,
-      page: state.page + 1,
-    }));
-  };
-
-  render() {
-    const { images, totalHits, isLoading, page } = this.state;
-    const totalPages = Math.ceil(totalHits / 12);
+  useEffect(() => {
+    setPage(1);
+  }, [query]);
 
     return (
-      <div
+      <div 
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -72,8 +57,8 @@ export class App extends Component {
         }}
       >
         <Searchbar
-          onInputChange={this.handleChange}
-          onFetchImages={this.handleRequest}
+          onInputChange={handleChange}
+          onFetchImages={handleRequest}
         />
         <ImageGallery>
           <ImageGalleryItem images={images} />
@@ -90,12 +75,12 @@ export class App extends Component {
           />
         )}
         {totalPages > 1 && totalPages >= page && (
-          <Button onLoadMore={this.handleLoadMore} />
+          <Button onLoadMore={handleLoadMore} />
         )}
       </div>
     );
   }
-}
+
 
 
 
